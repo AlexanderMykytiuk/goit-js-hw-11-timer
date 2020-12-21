@@ -1,33 +1,105 @@
-// Плагин это класс CountdownTimer, экземпляр которого создает новый таймер с настройками.
 
-new CountdownTimer({
-  selector: '#timer-1',
-  targetDate: new Date('Jul 17, 2019'),
+class CountdownTimer {
+
+  constructor(timeObj) {
+      this.selector = timeObj.selector;
+      this.targetDate = timeObj.targetDate;
+      this.initialNumOfDays = Math.floor((this.targetDate - new Date()) / (1000 * 60 * 60 * 24));
+      this.timerId;
+  }
+
+  getSeconds = currentDate => {
+      return Math.floor(((this.targetDate - currentDate) % (1000 * 60)) / 1000);
+  };
+  
+  getMinutes = currentDate => {
+      return Math.floor(
+          ((this.targetDate - currentDate) % (1000 * 60 * 60)) / (1000 * 60)
+      );
+  };
+  
+  getHours = currentDate => {
+      return Math.floor(
+          ((this.targetDate - currentDate) % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+      );
+  };
+  
+  getDays = currentDate => {
+      return Math.floor((this.targetDate - currentDate) / (1000 * 60 * 60 * 24));
+  };
+
+  getNumbers = () => {
+      let date = new Date();
+      let secs = this.getSeconds(date);
+      let mins = this.getMinutes(date);
+      let hours = this.getHours(date);
+      let days = this.getDays(date);
+      return {secs, mins, hours, days}
+  }
+
+  getValues = () => {
+      
+      let numbers = this.getNumbers();
+      let secsPlace = numbers.secs < 10 ? `0${numbers.secs}` : `${numbers.secs}`;
+      let minsPlace = numbers.mins < 10 ? `0${numbers.mins}` : `${numbers.mins}`;
+      let hoursPlace = numbers.hours < 10 ? `0${numbers.hours}` : `${numbers.hours}`;
+      let n1 = this.initialNumOfDays.toString().length;
+      let n2 = numbers.days.toString().length;
+      let daysPlace = `${'0'.repeat(n1-n2)}${numbers.days}`;
+
+      return {secsPlace, minsPlace, hoursPlace, daysPlace}
+  }
+
+  reflectInitialDate = () => {
+      let values = this.getValues();
+      document.querySelector(`${this.selector} span[data-value="secs"]`).textContent = values.secsPlace;
+      document.querySelector(`${this.selector} span[data-value="mins"]`).textContent = values.minsPlace;
+      document.querySelector(`${this.selector} span[data-value="hours"]`).textContent = values.hoursPlace;
+      document.querySelector(`${this.selector} span[data-value="days"]`).textContent = values.daysPlace;
+  }
+
+  reflectTime = () => {
+      let numbers = this.getNumbers();
+      let values = this.getValues();
+      
+      document.querySelector(`${this.selector} span[data-value="secs"]`).textContent = values.secsPlace;
+  
+      if (numbers.secs === 59) {
+          document.querySelector(`${this.selector} span[data-value="mins"]`).textContent = values.minsPlace;
+      }
+  
+      if (numbers.mins === 59) {
+          document.querySelector(`${this.selector} span[data-value="hours"]`).textContent = values.hoursPlace;
+      }
+  
+      if (numbers.hours === 11) {
+          document.querySelector(`${this.selector} span[data-value="days"]`).textContent = values.daysPlace;
+      }
+  
+      if (numbers.secs===0 && numbers.mins===0 && numbers.hours===0 && numbers.days===0) {
+          clearInterval(this.timerId);
+      }
+  };
+
+  startTimer = () => {
+      this.timerId = setInterval(this.reflectTime, 1000);
+  }
+};
+
+//Timer 1 example
+const countdownTimer = new CountdownTimer({
+  selector: "#timer-1",
+  targetDate: new Date(new Date().getTime() + 200000)
 });
 
-// Для подсчета значений используй следующие готовые формулы, где time - разница между targetDate и текущей датой.
+// countdownTimer.reflectInitialDate();
+// countdownTimer.startTimer();
 
-/*
- * Оставшиеся дни: делим значение UTC на 1000 * 60 * 60 * 24, количество
- * миллисекунд в одном дне (миллисекунды * секунды * минуты * часы)
- */
-const days = Math.floor(time / (1000 * 60 * 60 * 24));
+//Timer 2 example
+const countdownTimer1 = new CountdownTimer({
+  selector: "#timer-1",
+  targetDate: new Date("Dec 31, 2020")
+});
 
-/*
- * Оставшиеся часы: получаем остаток от предыдущего расчета с помощью оператора
- * остатка % и делим его на количество миллисекунд в одном часе
- * (1000 * 60 * 60 = миллисекунды * минуты * секунды)
- */
-const hours = Math.floor((time % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-
-/*
- * Оставшиеся минуты: получаем оставшиеся минуты и делим их на количество
- * миллисекунд в одной минуте (1000 * 60 = миллисекунды * секунды)
- */
-const mins = Math.floor((time % (1000 * 60 * 60)) / (1000 * 60));
-
-/*
- * Оставшиеся секунды: получаем оставшиеся секунды и делим их на количество
- * миллисекунд в одной секунде (1000)
- */
-const secs = Math.floor((time % (1000 * 60)) / 1000);
+countdownTimer1.reflectInitialDate();
+countdownTimer1.startTimer();
